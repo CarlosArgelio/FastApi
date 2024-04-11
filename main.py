@@ -1,6 +1,6 @@
 from fastapi import FastAPI
+from fastapi import Path, Query
 from fastapi.responses import HTMLResponse
-from fastapi import Body
 
 # schemas
 from pydantic import BaseModel, Field
@@ -66,7 +66,7 @@ def get_movies():
     return movies
 
 @app.get('/movies/{id}', tags=['movies'])
-def get_movie(id: int):
+def get_movie(id: int = Path(ge=1, le=2000)):
     for item in movies:
         if item["id"] == id:
             return item
@@ -74,8 +74,8 @@ def get_movie(id: int):
     return []
 
 @app.get('/movies/', tags=['movies'])
-def get_movies_by_category(category: str, year: int):
-    return [ item for item in movies if item["category"] == category and item["year"] == str(year) ]
+def get_movies_by_category(category: str = Query(min_length=5, max_length=15)):
+    return [ item for item in movies if item["category"] == category ]
 
 @app.post('/movies', tags=['movies'])
 def create_movie(movie: Movie):
@@ -83,14 +83,14 @@ def create_movie(movie: Movie):
     return movies[-1]
 
 @app.put('/movies/{id}', tags=['movies'])
-def update_movie(id: int, movie: Movie):
+def update_movie(movie: Movie, id: int = Path(ge=1, le=2000)):
 	for item in movies:
 		if item["id"] == id:
 			item = movie
 			return movies
 
 @app.delete('/movies/{id}', tags=['movies'])
-def delete_movie(id: int):
+def delete_movie(id: int = Path(ge=1, le=2000)):
     for item in movies:
         if item["id"] == id:
             movies.remove(item)
