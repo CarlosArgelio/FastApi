@@ -7,6 +7,13 @@ from fastapi import Path, Query, status
 from fastapi.responses import HTMLResponse, JSONResponse
 # Pydantic
 from pydantic import BaseModel, Field
+#dotenv
+from dotenv import load_dotenv
+
+# internal
+from jwt_manager import create_token
+
+load_dotenv()
 
 app = FastAPI()
 app.title = "My app backend with FastAPI"
