@@ -27,6 +27,10 @@ app.contact = {
 
 app.debug = True # False default ( This need enviroment configuration )
 
+class User(BaseModel):
+    email:str
+    password:str
+
 class Movie(BaseModel):
     id: Optional[int] = None
     title: str = Field(min_length=5, max_length=15)
@@ -69,6 +73,12 @@ movies = [
 @app.get('/', tags=['home'])
 def message():
     return HTMLResponse('<h1>Hello world</h1>')
+
+@app.post('/login', tags=['auth'])
+def login(user: User):
+    if user.email == "admin@gmail.com" and user.password == "admin":
+        token: str = create_token(user.dict())
+        return JSONResponse(status_code=200, content=token)
 
 @app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=status.HTTP_200_OK)
 def get_movies():
