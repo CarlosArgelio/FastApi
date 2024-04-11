@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi import Path, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 # schemas
 from pydantic import BaseModel, Field
@@ -63,35 +63,36 @@ def message():
 
 @app.get('/movies', tags=['movies'])
 def get_movies():
-    return movies
+    return JSONResponse(content=movies)
 
 @app.get('/movies/{id}', tags=['movies'])
 def get_movie(id: int = Path(ge=1, le=2000)):
     for item in movies:
         if item["id"] == id:
-            return item
+            return JSONResponse(content=item)
     # validate with error 404
-    return []
+    return JSONResponse(content=[])
 
 @app.get('/movies/', tags=['movies'])
 def get_movies_by_category(category: str = Query(min_length=5, max_length=15)):
-    return [ item for item in movies if item["category"] == category ]
+    data = [ item for item in movies if item["category"] == category ]
+    return JSONResponse(content=data)
 
 @app.post('/movies', tags=['movies'])
 def create_movie(movie: Movie):
     movies.append(movie)
-    return movies[-1]
+    return JSONResponse(content={"message": "Se ha registrado la pelÃ­cula"})
 
 @app.put('/movies/{id}', tags=['movies'])
 def update_movie(movie: Movie, id: int = Path(ge=1, le=2000)):
 	for item in movies:
 		if item["id"] == id:
 			item = movie
-			return movies
+			return JSONResponse(content={"message": "Se ha modificado la pelÃ­cula"})
 
 @app.delete('/movies/{id}', tags=['movies'])
 def delete_movie(id: int = Path(ge=1, le=2000)):
     for item in movies:
         if item["id"] == id:
             movies.remove(item)
-            return movies
+            return JSONResponse(content={"message": "Se ha eliminado la pelÃ­cula"})
