@@ -47,3 +47,7 @@ def get_movie(id: int):
             return item
     # validate with error 404
     return []
+
+@app.get('/movies/', tags=['movies'])
+def get_movies_by_category(category: str, year: int):
+    return category
