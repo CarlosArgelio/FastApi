@@ -2,16 +2,18 @@
 from typing import Optional, List
 
 # Fast API
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Depends
 from fastapi import Path, Query, status
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.security import HTTPBearer
 # Pydantic
 from pydantic import BaseModel, Field
 #dotenv
 from dotenv import load_dotenv
 
 # internal
-from jwt_manager import create_token
+from jwt_manager import create_token, validate_token
+from fastapi import HTTPException
 
 load_dotenv()
 
@@ -26,6 +28,13 @@ app.contact = {
 }
 
 app.debug = True # False default ( This need enviroment configuration )
+
+class JWTBearer(HTTPBearer):
+    async def __call__(self, request: Request):
+        auth = await super().__call__(request)
+        data = validate_token(auth.credentials)
+        if data['email'] != "admin@gmail.com" and data["password"] != "admin":
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Credenciales invalidas")
 
 class User(BaseModel):
     email:str
@@ -80,7 +89,7 @@ def login(user: User):
         token: str = create_token(user.dict())
         return JSONResponse(status_code=200, content=token)
 
-@app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=status.HTTP_200_OK)
+@app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
 def get_movies():
     return JSONResponse(content=movies)
 
