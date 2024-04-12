@@ -1,15 +1,17 @@
+# Uvicorn
+import uvicorn
 # Fast API
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 
-#dotenv
+# DotEnv
 from dotenv import load_dotenv
 
-# database
+# DataBase
 from database.config import engine, Base
 # middlewares
 from middlewares.error_handler import ErrorHandler
-# routers
+# Routers
 from routers.movie import movie
 from routers.auth import auth
 
@@ -41,3 +43,6 @@ def message():
 
 app.include_router(auth)
 app.include_router(movie)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
