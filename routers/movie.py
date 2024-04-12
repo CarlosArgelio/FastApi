@@ -4,10 +4,9 @@ from fastapi import APIRouter, status
 from fastapi import Path, Query, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
-from database.config import session
-from models.movie import Movie as MovieModel
 from schemas.movie import Movie as Movie
 from middlewares.jwt_bearer import JWTBearer
+from controllers.movie import MovieController
 
 movie = APIRouter()
 
@@ -32,14 +31,14 @@ movies = [
 
 @movie.get('/movies', tags=['movies'], response_model=List[Movie], status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
 def get_movies():
-    db = session
-    result = db.query(MovieModel).all()
+    controller = MovieController()
+    result = controller.get_movies()
     return JSONResponse(content=result)
 
 @movie.get('/movies/{id}', tags=['movies'], response_model=Movie)
 def get_movie(id: int = Path(ge=1, le=2000)):
-    db = session
-    result = db.query(MovieModel).filter(MovieModel.id == id).first()
+    controller = MovieController()
+    result = controller.get_movie(id)
     if not result:
         raise HTTPException(status_code=404, detail="No se encuentra la pelicula")
     return JSONResponse(content=result)
@@ -51,32 +50,18 @@ def get_movies_by_category(category: str = Query(min_length=5, max_length=15)):
 
 @movie.post('/movies', tags=['movies'], response_model=dict, status_code=status.HTTP_201_CREATED)
 def create_movie(movie: Movie):
-    db = session
-    new_movie = MovieModel(**movie.model_dump())
-    db.add(new_movie)
-    db.commit()
+    controller = MovieController()
+    controller.add_movie(movie)
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=movie.model_dump())
 
 @movie.put('/movies/{id}', tags=['movies'], response_model=dict)
 def update_movie(id: int, movie: Movie)-> dict:
-    db = session
-    result = db.query(MovieModel).filter(MovieModel.id == id).first()
-    if not result:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={'message': "No encontrado"})
-    result.title = movie.title
-    result.overview = movie.overview
-    result.year = movie.year
-    result.rating = movie.rating
-    result.category = movie.category
-    db.commit()
+    controller = MovieController()
+    controller.update_movie(id, movie)
     return JSONResponse(content={"message": "Se ha modificado la pelÃ­cula"})
 
 @movie.delete('/movies/{id}', tags=['movies'], response_model=dict, )
 def delete_movie(id: int)-> dict:
-    db = session
-    result = db.query(MovieModel).filter(MovieModel.id == id).first()
-    if not result:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={'message': "No encontrado"})
-    db.delete(result)
-    db.commit()
+    controller = MovieController()
+    controller.delete_movie(id)
     return JSONResponse(content={"message": "Se ha eliminado la pelÃ­cula"})
