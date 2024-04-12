@@ -97,15 +97,17 @@ def login(user: User):
 
 @app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=status.HTTP_200_OK, dependencies=[Depends(JWTBearer())])
 def get_movies():
-    return JSONResponse(content=movies)
+    db = session
+    result = db.query(MovieModel).all()
+    return JSONResponse(content=result)
 
 @app.get('/movies/{id}', tags=['movies'], response_model=Movie)
 def get_movie(id: int = Path(ge=1, le=2000)):
-    for item in movies:
-        if item["id"] == id:
-            return JSONResponse(content=item)
-    # validate with error 404
-    return JSONResponse(content=[])
+    db = session
+    result = db.query(MovieModel).filter(MovieModel.id == id).first()
+    if not result:
+        raise HTTPException(status_code=404, detail="No se encuentra la pelicula")
+    return JSONResponse(content=result)
 
 @app.get('/movies/', tags=['movies'])
 def get_movies_by_category(category: str = Query(min_length=5, max_length=15)):
@@ -114,8 +116,11 @@ def get_movies_by_category(category: str = Query(min_length=5, max_length=15)):
 
 @app.post('/movies', tags=['movies'], response_model=dict, status_code=status.HTTP_201_CREATED)
 def create_movie(movie: Movie):
-    movies.append(movie)
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"message": "Se ha registrado la pelÃ­cula"})
+    db = session
+    new_movie = MovieModel(**movie.model_dump())
+    db.add(new_movie)
+    db.commit()
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content=movie.model_dump())
 
 @app.put('/movies/{id}', tags=['movies'], response_model=List[Movie], status_code=status.HTTP_200_OK)
 def update_movie(movie: Movie, id: int = Path(ge=1, le=2000)):
