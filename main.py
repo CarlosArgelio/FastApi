@@ -3,6 +3,7 @@ from typing import Optional, List
 
 # Fast API
 from fastapi import FastAPI, Request, Depends
+from fastapi import HTTPException
 from fastapi import Path, Query, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
@@ -13,7 +14,8 @@ from dotenv import load_dotenv
 
 # internal
 from jwt_manager import create_token, validate_token
-from fastapi import HTTPException
+from database.config import session, engine, Base
+from models.movie import Movie as MovieModel
 
 load_dotenv()
 
@@ -28,6 +30,10 @@ app.contact = {
 }
 
 app.debug = True # False default ( This need enviroment configuration )
+
+# create tables
+
+Base.metadata.create_all(bind=engine)
 
 class JWTBearer(HTTPBearer):
     async def __call__(self, request: Request):
