@@ -2,7 +2,7 @@ from services.movie import MovieService
 
 class MovieController:
     def __init__(self, services = MovieService):
-        self.movie_service = services
+        self.movie_service = services()
 
     def get_movies(self):
         return self.movie_service.get_movies()

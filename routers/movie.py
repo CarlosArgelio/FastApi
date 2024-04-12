@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, status
 from fastapi import Path, Query, Depends, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 from schemas.movie import Movie as Movie
 from middlewares.jwt_bearer import JWTBearer
@@ -33,7 +34,7 @@ movies = [
 def get_movies():
     controller = MovieController()
     result = controller.get_movies()
-    return JSONResponse(content=result)
+    return JSONResponse(content=jsonable_encoder(result))
 
 @movie.get('/movies/{id}', tags=['movies'], response_model=Movie)
 def get_movie(id: int = Path(ge=1, le=2000)):
@@ -41,7 +42,7 @@ def get_movie(id: int = Path(ge=1, le=2000)):
     result = controller.get_movie(id)
     if not result:
         raise HTTPException(status_code=404, detail="No se encuentra la pelicula")
-    return JSONResponse(content=result)
+    return JSONResponse(content=jsonable_encoder(result))
 
 @movie.get('/movies/', tags=['movies'])
 def get_movies_by_category(category: str = Query(min_length=5, max_length=15)):
